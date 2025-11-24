@@ -222,13 +222,7 @@
             margin: 8px 0;
         }
 
-        .status-text.line1::after {
-            content: '█';
-            animation: blink 1s step-end infinite;
-            margin-left: 2px;
-        }
-
-        .status-text.line2::after {
+        .status-text.typing::after {
             content: '█';
             animation: blink 1s step-end infinite;
             margin-left: 2px;
@@ -301,8 +295,8 @@
             </svg>
 
             <div class="text-container">
-                <div class="status-text line1" id="line1"></div>
-                <div class="status-text line2" id="line2"></div>
+                <div class="status-text" id="line1"></div>
+                <div class="status-text" id="line2"></div>
             </div>
         </div>
     </div>
@@ -607,31 +601,35 @@
         function typeWriter() {
             if (currentLine === 1) {
                 // Digitando primeira linha
+                if (charIndex === 0) {
+                    line1.classList.add('typing');
+                }
                 if (charIndex < message1.length) {
                     line1.textContent = message1.substring(0, charIndex + 1);
                     charIndex++;
                     setTimeout(typeWriter, typingSpeed);
                 } else {
                     // Primeira linha completa, remove cursor e vai para segunda
-                    line1.classList.remove('line1');
+                    line1.classList.remove('typing');
                     currentLine = 2;
                     charIndex = 0;
                     setTimeout(typeWriter, 300);
                 }
             } else if (currentLine === 2) {
                 // Digitando segunda linha
+                if (charIndex === 0) {
+                    line2.classList.add('typing');
+                }
                 if (charIndex < message2.length) {
                     line2.textContent = message2.substring(0, charIndex + 1);
                     charIndex++;
                     setTimeout(typeWriter, typingSpeed);
                 } else {
                     // Segunda linha completa, pausa e reinicia
-                    line2.classList.remove('line2');
+                    line2.classList.remove('typing');
                     setTimeout(() => {
                         line1.textContent = '';
                         line2.textContent = '';
-                        line1.classList.add('line1');
-                        line2.classList.add('line2');
                         currentLine = 1;
                         charIndex = 0;
                         typeWriter();
