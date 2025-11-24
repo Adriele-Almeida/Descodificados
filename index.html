@@ -98,104 +98,12 @@
             padding: 20px;
         }
 
-        .lock-container {
-            animation: float 6s ease-in-out infinite;
-            position: relative;
-        }
-
-        /* Pulso de energia ao redor do cadeado */
-        .lock-container::before {
-            content: '';
+        .text-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 150%;
-            height: 150%;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 217, 255, 0.3) 0%, transparent 70%);
-            animation: energyPulse 3s ease-in-out infinite;
-            z-index: -1;
-        }
-
-        @keyframes energyPulse {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 0.5;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.3);
-                opacity: 0;
-            }
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-20px);
-            }
-        }
-
-        .lock-svg {
-            width: 300px;
-            height: 300px;
-            filter: drop-shadow(0 0 30px rgba(0, 217, 255, 1))
-                    drop-shadow(0 0 60px rgba(0, 217, 255, 0.8));
-        }
-
-        .lock-body {
-            fill: none;
-            stroke: #00d9ff;
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .lock-shackle {
-            fill: none;
-            stroke: #00d9ff;
-            stroke-width: 3;
-            stroke-linecap: round;
-            animation: lockAnimation 4s ease-in-out infinite;
-            transform-origin: 150px 120px;
-        }
-
-        @keyframes lockAnimation {
-            0%, 40% {
-                transform: translateY(0) translateX(0);
-            }
-            50%, 90% {
-                transform: translateY(-30px) translateX(20px);
-            }
-            100% {
-                transform: translateY(0) translateX(0);
-            }
-        }
-
-        .lock-keyhole {
-            fill: #00d9ff;
-            animation: keyholeGlow 2s ease-in-out infinite;
-        }
-
-        @keyframes keyholeGlow {
-            0%, 100% {
-                opacity: 0.6;
-                filter: drop-shadow(0 0 5px rgba(0, 217, 255, 0.8));
-            }
-            50% {
-                opacity: 1;
-                filter: drop-shadow(0 0 15px rgba(0, 217, 255, 1));
-            }
-        }
-
-        .text-container {
-            position: absolute;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10, 25, 41, 0.92);
+            background: rgba(8, 22, 36, 0.92);
             padding: 20px 50px;
             border-radius: 8px;
             border: 2px solid rgba(0, 217, 255, 0.6);
@@ -253,15 +161,10 @@
         }
 
         @media (max-width: 768px) {
-            .lock-svg {
-                width: 200px;
-                height: 200px;
-            }
             .text-container {
                 min-width: auto;
                 max-width: 90%;
                 padding: 15px 25px;
-                bottom: -90px;
             }
             .status-text {
                 font-size: 18px;
@@ -276,28 +179,9 @@
     <canvas id="particlesCanvas"></canvas>
 
     <div class="content">
-        <div class="lock-container">
-            <svg class="lock-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-                <!-- Corpo do cadeado -->
-                <rect class="lock-body" x="80" y="140" width="140" height="120" rx="10" ry="10"/>
-
-                <!-- Arco do cadeado (parte superior) -->
-                <path class="lock-shackle" d="M 110 140 L 110 100 Q 110 60, 150 60 Q 190 60, 190 100 L 190 140"/>
-
-                <!-- Buraco da fechadura -->
-                <circle class="lock-keyhole" cx="150" cy="180" r="8"/>
-                <rect class="lock-keyhole" x="146" y="185" width="8" height="25" rx="2"/>
-
-                <!-- Detalhes decorativos -->
-                <line class="lock-body" x1="90" y1="155" x2="210" y2="155" stroke-width="1"/>
-                <circle class="lock-body" cx="100" cy="250" r="5" stroke-width="2"/>
-                <circle class="lock-body" cx="200" cy="250" r="5" stroke-width="2"/>
-            </svg>
-
-            <div class="text-container">
-                <div class="status-text" id="line1"></div>
-                <div class="status-text" id="line2"></div>
-            </div>
+        <div class="text-container">
+            <div class="status-text" id="line1"></div>
+            <div class="status-text" id="line2"></div>
         </div>
     </div>
 
