@@ -601,12 +601,12 @@
         function typeWriter() {
             if (currentLine === 1) {
                 // Digitando primeira linha
-                if (charIndex === 0) {
-                    line1.classList.add('typing');
-                }
                 if (charIndex < message1.length) {
                     line1.textContent = message1.substring(0, charIndex + 1);
                     charIndex++;
+                    if (!line1.classList.contains('typing')) {
+                        line1.classList.add('typing');
+                    }
                     setTimeout(typeWriter, typingSpeed);
                 } else {
                     // Primeira linha completa, remove cursor e vai para segunda
@@ -617,12 +617,12 @@
                 }
             } else if (currentLine === 2) {
                 // Digitando segunda linha
-                if (charIndex === 0) {
-                    line2.classList.add('typing');
-                }
                 if (charIndex < message2.length) {
                     line2.textContent = message2.substring(0, charIndex + 1);
                     charIndex++;
+                    if (!line2.classList.contains('typing')) {
+                        line2.classList.add('typing');
+                    }
                     setTimeout(typeWriter, typingSpeed);
                 } else {
                     // Segunda linha completa, pausa e reinicia
