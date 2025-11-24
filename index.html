@@ -190,35 +190,45 @@
             }
         }
 
-        .status-text {
+        .text-container {
             position: absolute;
-            bottom: -80px;
+            bottom: -100px;
             left: 50%;
             transform: translateX(-50%);
+            background: rgba(10, 25, 41, 0.92);
+            padding: 20px 50px;
+            border-radius: 8px;
+            border: 2px solid rgba(0, 217, 255, 0.6);
+            box-shadow:
+                0 0 40px rgba(0, 217, 255, 0.5),
+                inset 0 0 30px rgba(0, 217, 255, 0.1);
+            animation: statusGlow 3s ease-in-out infinite;
+            min-width: 400px;
+            text-align: center;
+        }
+
+        .status-text {
             color: #00d9ff;
             font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 400;
-            text-align: center;
             letter-spacing: 1px;
             white-space: nowrap;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 18px 45px;
-            border-radius: 5px;
-            border: 2px solid rgba(0, 217, 255, 0.6);
             text-shadow:
                 0 0 10px rgba(0, 217, 255, 1),
                 0 0 20px rgba(0, 217, 255, 0.8),
                 0 0 30px rgba(0, 217, 255, 0.6),
                 0 0 40px rgba(0, 180, 255, 0.4);
-            box-shadow:
-                0 0 40px rgba(0, 217, 255, 0.5),
-                inset 0 0 30px rgba(0, 217, 255, 0.1);
-            animation: statusGlow 3s ease-in-out infinite;
-            overflow: hidden;
+            margin: 8px 0;
         }
 
-        .status-text::after {
+        .status-text.line1::after {
+            content: '█';
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        .status-text.line2::after {
             content: '█';
             animation: blink 1s step-end infinite;
             margin-left: 2px;
@@ -253,12 +263,15 @@
                 width: 200px;
                 height: 200px;
             }
+            .text-container {
+                min-width: auto;
+                max-width: 90%;
+                padding: 15px 25px;
+                bottom: -90px;
+            }
             .status-text {
                 font-size: 18px;
-                padding: 12px 20px;
-                bottom: -70px;
                 white-space: normal;
-                max-width: 90%;
             }
         }
     </style>
@@ -287,7 +300,10 @@
                 <circle class="lock-body" cx="200" cy="250" r="5" stroke-width="2"/>
             </svg>
 
-            <div class="status-text" id="statusText"></div>
+            <div class="text-container">
+                <div class="status-text line1" id="line1"></div>
+                <div class="status-text line2" id="line2"></div>
+            </div>
         </div>
     </div>
 
@@ -580,31 +596,47 @@
         animate();
 
         // ========== EFEITO DE DIGITAÇÃO (TYPEWRITER) ==========
-        const statusText = document.getElementById('statusText');
-        const messages = [
-            'O Código do Novo Digital',
-            'está sendo Descodificado'
-        ];
-        let messageIndex = 0;
-        let charIndex = 0;
+        const line1 = document.getElementById('line1');
+        const line2 = document.getElementById('line2');
+        const message1 = 'O Código do Novo Digital';
+        const message2 = 'está sendo Descodificado';
         let typingSpeed = 100;
+        let currentLine = 1;
+        let charIndex = 0;
 
         function typeWriter() {
-            const currentMessage = messages[messageIndex];
-
-            if (charIndex < currentMessage.length) {
-                // Digitando letra por letra
-                statusText.textContent = currentMessage.substring(0, charIndex + 1);
-                charIndex++;
-                setTimeout(typeWriter, typingSpeed);
-            } else {
-                // Mensagem completa, pausa e vai para próxima
-                setTimeout(() => {
+            if (currentLine === 1) {
+                // Digitando primeira linha
+                if (charIndex < message1.length) {
+                    line1.textContent = message1.substring(0, charIndex + 1);
+                    charIndex++;
+                    setTimeout(typeWriter, typingSpeed);
+                } else {
+                    // Primeira linha completa, remove cursor e vai para segunda
+                    line1.classList.remove('line1');
+                    currentLine = 2;
                     charIndex = 0;
-                    messageIndex = (messageIndex + 1) % messages.length;
-                    statusText.textContent = '';
-                    typeWriter();
-                }, 2500);
+                    setTimeout(typeWriter, 300);
+                }
+            } else if (currentLine === 2) {
+                // Digitando segunda linha
+                if (charIndex < message2.length) {
+                    line2.textContent = message2.substring(0, charIndex + 1);
+                    charIndex++;
+                    setTimeout(typeWriter, typingSpeed);
+                } else {
+                    // Segunda linha completa, pausa e reinicia
+                    line2.classList.remove('line2');
+                    setTimeout(() => {
+                        line1.textContent = '';
+                        line2.textContent = '';
+                        line1.classList.add('line1');
+                        line2.classList.add('line2');
+                        currentLine = 1;
+                        charIndex = 0;
+                        typeWriter();
+                    }, 3000);
+                }
             }
         }
 
