@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descodificados - Matrix Lock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0a0e27;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        /* Gradiente animado de fundo */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0, 217, 255, 0.1) 0%, rgba(10, 14, 39, 0) 70%);
+            animation: pulseGradient 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes pulseGradient {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Efeito scanline */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 217, 255, 0.03) 0px,
+                transparent 1px,
+                transparent 2px,
+                rgba(0, 217, 255, 0.03) 3px
+            );
+            pointer-events: none;
+            z-index: 5;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #gridCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        #particlesCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .content {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .lock-container {
+            animation: float 6s ease-in-out infinite;
+            position: relative;
+        }
+
+        /* Pulso de energia ao redor do cadeado */
+        .lock-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150%;
+            height: 150%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 217, 255, 0.3) 0%, transparent 70%);
+            animation: energyPulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes energyPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .lock-svg {
+            width: 300px;
+            height: 300px;
+            filter: drop-shadow(0 0 30px rgba(0, 217, 255, 1))
+                    drop-shadow(0 0 60px rgba(0, 217, 255, 0.8));
+        }
+
+        .lock-body {
+            fill: none;
+            stroke: #00d9ff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .lock-shackle {
+            fill: none;
+            stroke: #00d9ff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            animation: lockAnimation 4s ease-in-out infinite;
+            transform-origin: 150px 120px;
+        }
+
+        @keyframes lockAnimation {
+            0%, 40% {
+                transform: translateY(0) translateX(0);
+            }
+            50%, 90% {
+                transform: translateY(-30px) translateX(20px);
+            }
+            100% {
+                transform: translateY(0) translateX(0);
+            }
+        }
+
+        .lock-keyhole {
+            fill: #00d9ff;
+            animation: keyholeGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes keyholeGlow {
+            0%, 100% {
+                opacity: 0.6;
+                filter: drop-shadow(0 0 5px rgba(0, 217, 255, 0.8));
+            }
+            50% {
+                opacity: 1;
+                filter: drop-shadow(0 0 15px rgba(0, 217, 255, 1));
+            }
+        }
+
+        .status-text {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00d9ff;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.8),
+                         0 0 20px rgba(0, 217, 255, 0.6);
+            animation: textPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes textPulse {
+            0%, 40% {
+                content: 'LOCKED';
+            }
+            50%, 90% {
+                content: 'UNLOCKED';
+            }
+        }
+
+        @media (max-width: 768px) {
+            .lock-svg {
+                width: 200px;
+                height: 200px;
+            }
+            .status-text {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gridCanvas"></canvas>
+    <canvas id="matrixCanvas"></canvas>
+    <canvas id="particlesCanvas"></canvas>
+
+    <div class="content">
+        <div class="lock-container">
+            <svg class="lock-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+                <!-- Corpo do cadeado -->
+                <rect class="lock-body" x="80" y="140" width="140" height="120" rx="10" ry="10"/>
+
+                <!-- Arco do cadeado (parte superior) -->
+                <path class="lock-shackle" d="M 110 140 L 110 100 Q 110 60, 150 60 Q 190 60, 190 100 L 190 140"/>
+
+                <!-- Buraco da fechadura -->
+                <circle class="lock-keyhole" cx="150" cy="180" r="8"/>
+                <rect class="lock-keyhole" x="146" y="185" width="8" height="25" rx="2"/>
+
+                <!-- Detalhes decorativos -->
+                <line class="lock-body" x1="90" y1="155" x2="210" y2="155" stroke-width="1"/>
+                <circle class="lock-body" cx="100" cy="250" r="5" stroke-width="2"/>
+                <circle class="lock-body" cx="200" cy="250" r="5" stroke-width="2"/>
+            </svg>
+            <div class="status-text" id="statusText">LOCKED</div>
+        </div>
+    </div>
+
+    <script>
+        // ========== GRID FUTURISTA ==========
+        const gridCanvas = document.getElementById('gridCanvas');
+        const gridCtx = gridCanvas.getContext('2d');
+        gridCanvas.width = window.innerWidth;
+        gridCanvas.height = window.innerHeight;
+
+        function drawGrid() {
+            const gridSize = 50;
+            gridCtx.strokeStyle = 'rgba(0, 217, 255, 0.1)';
+            gridCtx.lineWidth = 1;
+
+            for (let x = 0; x < gridCanvas.width; x += gridSize) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(x, 0);
+                gridCtx.lineTo(x, gridCanvas.height);
+                gridCtx.stroke();
+            }
+
+            for (let y = 0; y < gridCanvas.height; y += gridSize) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(0, y);
+                gridCtx.lineTo(gridCanvas.width, y);
+                gridCtx.stroke();
+            }
+
+            gridCtx.strokeStyle = 'rgba(0, 217, 255, 0.2)';
+            gridCtx.lineWidth = 2;
+
+            const centerX = gridCanvas.width / 2;
+            const centerY = gridCanvas.height / 2;
+
+            gridCtx.beginPath();
+            gridCtx.moveTo(centerX, 0);
+            gridCtx.lineTo(centerX, gridCanvas.height);
+            gridCtx.stroke();
+
+            gridCtx.beginPath();
+            gridCtx.moveTo(0, centerY);
+            gridCtx.lineTo(gridCanvas.width, centerY);
+            gridCtx.stroke();
+        }
+
+        drawGrid();
+
+        // ========== EFEITO MATRIX ==========
+        const matrixCanvas = document.getElementById('matrixCanvas');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+
+        const katakana = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        const alphabet = katakana + latin + nums + symbols;
+
+        const fontSize = 16;
+        const columns = matrixCanvas.width / fontSize;
+
+        const drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.random() * -100;
+        }
+
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(10, 14, 39, 0.05)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+            matrixCtx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+
+                const brightness = Math.random();
+                if (brightness > 0.95) {
+                    matrixCtx.fillStyle = '#00d9ff';
+                } else if (brightness > 0.7) {
+                    matrixCtx.fillStyle = '#00b4d8';
+                } else {
+                    matrixCtx.fillStyle = '#0096c7';
+                }
+
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+
+                matrixCtx.fillText(text, x, y);
+
+                if (y > matrixCanvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+        // ========== PARTÍCULAS ==========
+        const particlesCanvas = document.getElementById('particlesCanvas');
+        const particlesCtx = particlesCanvas.getContext('2d');
+        particlesCanvas.width = window.innerWidth;
+        particlesCanvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 80;
+        const connectionDistance = 150;
+        const centerX = particlesCanvas.width / 2;
+        const centerY = particlesCanvas.height / 2;
+        const lockRadius = 200;
+
+        class Particle {
+            constructor(isOrbiting = false) {
+                this.isOrbiting = isOrbiting;
+
+                if (isOrbiting) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = lockRadius + (Math.random() - 0.5) * 80;
+                    this.x = centerX + Math.cos(angle) * distance;
+                    this.y = centerY + Math.sin(angle) * distance;
+                    this.angle = angle;
+                    this.orbitSpeed = (Math.random() - 0.5) * 0.003;
+                    this.orbitRadius = distance;
+                } else {
+                    const bias = Math.random() < 0.6 ? 1 : 0;
+                    if (bias) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = Math.random() * lockRadius * 1.5;
+                        this.x = centerX + Math.cos(angle) * distance;
+                        this.y = centerY + Math.sin(angle) * distance;
+                    } else {
+                        this.x = Math.random() * particlesCanvas.width;
+                        this.y = Math.random() * particlesCanvas.height;
+                    }
+                }
+
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4;
+                this.radius = Math.random() * 2 + 1;
+                this.hexagon = Math.random() > 0.5;
+
+                const variation = Math.random();
+                if (variation > 0.7) {
+                    this.color = { r: 0, g: 217, b: 255 };
+                } else if (variation > 0.3) {
+                    this.color = { r: 0, g: 180, b: 255 };
+                } else {
+                    this.color = { r: 0, g: 150, b: 220 };
+                }
+
+                const distFromCenter = Math.sqrt(
+                    Math.pow(this.x - centerX, 2) +
+                    Math.pow(this.y - centerY, 2)
+                );
+                if (distFromCenter < lockRadius) {
+                    this.radius *= 1.3;
+                    this.brightness = 0.9;
+                } else {
+                    this.brightness = 0.6;
+                }
+            }
+
+            update() {
+                if (this.isOrbiting) {
+                    this.angle += this.orbitSpeed;
+                    this.x = centerX + Math.cos(this.angle) * this.orbitRadius;
+                    this.y = centerY + Math.sin(this.angle) * this.orbitRadius;
+                    this.orbitRadius += Math.sin(this.angle * 3) * 0.1;
+                } else {
+                    const dx = centerX - this.x;
+                    const dy = centerY - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist > lockRadius * 2) {
+                        this.vx += (dx / dist) * 0.01;
+                        this.vy += (dy / dist) * 0.01;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    if (this.x < 0 || this.x > particlesCanvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > particlesCanvas.height) this.vy *= -1;
+
+                    const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                    if (speed > 2) {
+                        this.vx = (this.vx / speed) * 2;
+                        this.vy = (this.vy / speed) * 2;
+                    }
+                }
+            }
+
+            draw() {
+                const alpha = this.brightness;
+
+                if (this.hexagon) {
+                    particlesCtx.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (Math.PI / 3) * i;
+                        const x = this.x + this.radius * Math.cos(angle);
+                        const y = this.y + this.radius * Math.sin(angle);
+                        if (i === 0) particlesCtx.moveTo(x, y);
+                        else particlesCtx.lineTo(x, y);
+                    }
+                    particlesCtx.closePath();
+                    particlesCtx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+                    particlesCtx.shadowBlur = 20 * alpha;
+                    particlesCtx.shadowColor = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                    particlesCtx.fill();
+                } else {
+                    particlesCtx.beginPath();
+                    particlesCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    particlesCtx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+                    particlesCtx.shadowBlur = 20 * alpha;
+                    particlesCtx.shadowColor = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                    particlesCtx.fill();
+                }
+                particlesCtx.shadowBlur = 0;
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            const isOrbiting = i < particleCount * 0.25;
+            particles.push(new Particle(isOrbiting));
+        }
+
+        function connectParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < connectionDistance) {
+                        const midX = (particles[i].x + particles[j].x) / 2;
+                        const midY = (particles[i].y + particles[j].y) / 2;
+                        const distFromCenter = Math.sqrt(
+                            Math.pow(midX - centerX, 2) +
+                            Math.pow(midY - centerY, 2)
+                        );
+
+                        const centerBoost = distFromCenter < lockRadius ? 1.3 : 1;
+                        const opacity = (1 - distance / connectionDistance) * 0.3 * centerBoost;
+
+                        const gradient = particlesCtx.createLinearGradient(
+                            particles[i].x, particles[i].y,
+                            particles[j].x, particles[j].y
+                        );
+                        gradient.addColorStop(0, `rgba(0, 217, 255, ${opacity})`);
+                        gradient.addColorStop(0.5, `rgba(0, 180, 255, ${opacity * 0.9})`);
+                        gradient.addColorStop(1, `rgba(0, 150, 220, ${opacity * 0.8})`);
+
+                        particlesCtx.beginPath();
+                        particlesCtx.strokeStyle = gradient;
+                        particlesCtx.lineWidth = distFromCenter < lockRadius ? 1.5 : 1;
+                        particlesCtx.moveTo(particles[i].x, particles[i].y);
+                        particlesCtx.lineTo(particles[j].x, particles[j].y);
+                        particlesCtx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            particlesCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            connectParticles();
+        }
+
+        // ========== ANIMAÇÃO PRINCIPAL ==========
+        let matrixFrameCount = 0;
+        function animate() {
+            // Matrix roda a cada 2 frames para melhor performance
+            if (matrixFrameCount % 2 === 0) {
+                drawMatrix();
+            }
+            matrixFrameCount++;
+
+            animateParticles();
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // ========== ATUALIZAR TEXTO DO STATUS ==========
+        const statusText = document.getElementById('statusText');
+        setInterval(() => {
+            const currentText = statusText.textContent;
+            statusText.textContent = currentText === 'LOCKED' ? 'UNLOCKED' : 'LOCKED';
+        }, 2000);
+
+        // ========== RESIZE ==========
+        window.addEventListener('resize', () => {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+            gridCanvas.width = window.innerWidth;
+            gridCanvas.height = window.innerHeight;
+            particlesCanvas.width = window.innerWidth;
+            particlesCanvas.height = window.innerHeight;
+            drawGrid();
+        });
+    </script>
+</body>
+</html>
