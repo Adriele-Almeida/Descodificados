@@ -332,25 +332,28 @@
         ];
 
         // Clipboard function compatible with iframes
-        function copyText(text) {
-            const el = document.createElement('textarea');
-            el.value = text;
-            el.setAttribute('readonly', '');
-            el.style.position = 'absolute';
-            el.style.left = '-9999px';
-            document.body.appendChild(el);
-            const selected = document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
-            el.select();
+        async function copyText(text) {
             try {
-                document.execCommand('copy');
+                try { await navigator.clipboard.writeText(text); }
+                catch {
+                    const focused = document.activeElement;
+                    const el = document.createElement('textarea');
+                    el.value = text;
+                    el.setAttribute('readonly', '');
+                    el.style.cssText = 'position:fixed;top:0;left:-9999px;font-size:16px';
+                    document.body.appendChild(el);
+                    el.select();
+                    el.setSelectionRange(0, el.value.length);
+                    let copied;
+                    try { copied = document.execCommand('copy'); }
+                    finally { el.remove(); focused?.focus(); }
+                    if (!copied) throw new Error('Falha ao copiar');
+                }
                 showToast();
-            } catch (err) {
-                console.error('Falha ao copiar', err);
-            }
-            document.body.removeChild(el);
-            if (selected) {
-                document.getSelection().removeAllRanges();
-                document.getSelection().addRange(selected);
+                return true;
+            } catch {
+                window.prompt('Copie o código abaixo:', text);
+                return false;
             }
         }
 
@@ -408,12 +411,12 @@
         });
 
         // Botão Mágico - Sorteia e copia uma combinação surpresa
-        function generateMagic() {
+        async function generateMagic() {
             const randomIndex = Math.floor(Math.random() * magicCombinations.length);
             const combo = magicCombinations[randomIndex];
             
             // Custom copy to trigger specific magic toast
-            copyText(combo);
+            if (!await copyText(combo)) return;
             
             const toast = document.getElementById('toast');
             toast.innerHTML = `
